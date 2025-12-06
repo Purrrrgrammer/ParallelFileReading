@@ -4,5 +4,5 @@ namespace ParallelFileReading.Services;
 
 public interface ISpaceCounter
 {
-    Task<FileInfo> CountNumberOfSpacesInFileAsync(string filePath);
+    Task<FileInfo> CountNumberOfSpacesInFileAsync(string filePath, CancellationToken cancellationToken);
 }

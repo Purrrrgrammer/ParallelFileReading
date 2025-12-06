@@ -4,32 +4,30 @@ namespace ParallelFileReading;
 
 class Program
 {
-    static async Task Main(string[] args)
+    static async Task Main()
     {
         Console.WriteLine("Enter directory path:");
+        var directoryPath = Console.ReadLine();
 
-        List<string> filePaths = new List<string>()
+        if (string.IsNullOrEmpty(directoryPath))
         {
-            "C:\\Nastya\\MyProjects\\ParallelFileReading\\ParallelFileReading\\TestFiles\\Текстовый документ.txt",
-            "C:\\Nastya\\MyProjects\\ParallelFileReading\\ParallelFileReading\\TestFiles\\Текстовый документ (2).txt",
-            "C:\\Nastya\\MyProjects\\ParallelFileReading\\ParallelFileReading\\TestFiles\\Текстовый документ — копия.txt"
-        };
-
-        ISpaceCounter spaceCounter = new SpaceCounter();
-
-        List<Task<Models.FileInfo>> tasks = new List<Task<Models.FileInfo>>();
-
-        for (int i = 0; i < filePaths.Count; i++)
+            Console.WriteLine("Directory path is wrong");
+            return;
+        }   
+        
+        IDirectoryAnalyzer directoryAnalyzer = new DirectoryAnalyzer(new DirectoryScanner(), new SpaceCounter());
+        
+        CancellationTokenSource cancellationTokenSource = new CancellationTokenSource();
+        cancellationTokenSource.CancelAfter(TimeSpan.FromSeconds(30));
+        
+        var result = await directoryAnalyzer.AnalyseDirectoryAsync(directoryPath, cancellationTokenSource.Token);
+        
+        foreach (var fileInfo in result.FilesInfos)
         {
-            var currentFilePath = filePaths[i];
-            tasks.Add(spaceCounter.CountNumberOfSpacesInFileAsync(currentFilePath));
+            Console.WriteLine($"Path = {fileInfo.Path}; SpaceCount = {fileInfo.SpaceCount}");
         }
         
-        var results = await Task.WhenAll(tasks);
-
-        foreach (var result in results)
-        {
-            Console.WriteLine($"{result.Path} : spaces count = {result.SpaceCount}");
-        }
+        Console.WriteLine($"TotalSpacesCount = {result.TotalSpacesCount}");
+        Console.WriteLine($"ExecutionTime = {result.ExecutionTime}");
     }
 }
